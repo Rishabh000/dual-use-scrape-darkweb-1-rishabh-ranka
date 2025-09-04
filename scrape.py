@@ -1,9 +1,13 @@
 import requests
+import socks
+import socket
 from bs4 import BeautifulSoup
 import re
 import json
 from requests.exceptions import RequestException
 import time
+from stem import Signal
+from stem.control import Controller
 
 #data_types=["emails","usernames","phone_numbers"]
 filter=["NV","contact","confidential","database","name","702","address","email","phone","number","phone number"]
@@ -14,6 +18,13 @@ proxy = {
     'http': 'socks5h://127.0.0.1:9150',
     'https': 'socks5h://127.0.0.1:9150'
 }
+
+def set_new_ip():
+    with Controller.from_port(port=9051) as controller:
+        controller.signal(Signal.NEWNYM)
+
+    socks.set_default_proxy(proxy)
+    #socket.socket = socks.socksocket
 
 def extract_emails(text):
     email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
@@ -53,6 +64,9 @@ def scrape_website(url, session):
             
             results = {"emails": list(extract_emails(text)), "usernames": list(extract_usernames(text)), "phone_numbers": list(extract_phone_numbers(text))}
             print("Successfully retrieved content!")
+
+            set_new_ip()
+            
             return results
             
             
